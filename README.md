@@ -16,10 +16,7 @@ apic create:product  --template template_producto.hbs  --title product_title
 
 
 
-apic create:api      --template openapi-apic-vcsoft.hbs    
-   --title api_title 
-   --name api_name
-   --basepath /base/path
+apic create:api  --template openapi-apic-vcsoft.hbs  --filename api2.yaml --title API_title --name API_name --basepath /api/base/path 
 
 ```
 

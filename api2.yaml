@@ -1,22 +1,17 @@
 openapi: 3.0.3
-
 info:
-  x-ibm-name: {{name}}
-  version: {{#if version}}{{version}}{{else}}0.0.1{{/if}}
-  title: {{title}}
-  description: >-
-    # {{title}}
-
-    API: {{name}} - {{version}}
-    
+  x-ibm-name: api_name
+  version: 1.0.0
+  title: API_title
+  description: |-
+    # API_title
+    API: API_name - 1.0.0
     Contexto: 
-    
     Objectivo:
-
 schemes:
   - https
 servers:
-  - url: {{basepath}}
+  - url: /api/base/path
 x-ibm-configuration:
   properties:
     target-url:
@@ -31,7 +26,7 @@ x-ibm-configuration:
         runtime-url: $(TARGET_URL)
     sb:
       properties:
-        runtime-url: 'http://localhost:4001'
+        runtime-url: http://localhost:4001
   gateway: datapower-api-gateway
   type: rest
   phase: realized
@@ -47,7 +42,6 @@ x-ibm-configuration:
           title: invoke
           version: 2.0.0
           verb: keep
-          target-url: {{targeturl}}
           follow-redirects: false
           timeout: 60
           parameter-control:
@@ -63,8 +57,8 @@ paths:
       - name: X-Mock
         description: >-
           Header requerido cuando se realiza invocación a Mocks, si se desea
-          enviar este header es necesario que el valor enviado corresponda a
-          la respuesta que espera recibir.
+          enviar este header es necesario que el valor enviado corresponda a la
+          respuesta que espera recibir.
         schema:
           type: string
         in: header
@@ -210,7 +204,7 @@ components:
           type: integer
         size:
           description: Tamaño total de la página de la consulta
-          type: integer  
+          type: integer
   securitySchemes:
     clientID:
       type: apiKey

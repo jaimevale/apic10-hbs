@@ -1,22 +1,15 @@
 openapi: 3.0.3
-
 info:
-  x-ibm-name: {{name}}
-  version: {{#if version}}{{version}}{{else}}0.0.1{{/if}}
-  title: {{title}}
-  description: >-
-    # {{title}}
-
-    API: {{name}} - {{version}}
-    
-    Contexto: 
-    
+  x-ibm-name: api_name
+  version: 1.0.0
+  title: api_title
+  description: |-
+    # api_title 
+    API: api_name 
+    Contexto:  
     Objectivo:
-
-schemes:
-  - https
 servers:
-  - url: {{basepath}}
+  - url: /base/path
 x-ibm-configuration:
   properties:
     target-url:
@@ -31,7 +24,7 @@ x-ibm-configuration:
         runtime-url: $(TARGET_URL)
     sb:
       properties:
-        runtime-url: 'http://localhost:4001'
+        runtime-url: http://localhost:4001
   gateway: datapower-api-gateway
   type: rest
   phase: realized
@@ -47,7 +40,7 @@ x-ibm-configuration:
           title: invoke
           version: 2.0.0
           verb: keep
-          target-url: {{targeturl}}
+          target-url: https://api.chucknorris.io/jokes/random
           follow-redirects: false
           timeout: 60
           parameter-control:
@@ -57,14 +50,19 @@ x-ibm-configuration:
             type: blocklist
             values: []
           inject-proxy-headers: true
+    finally: []
+  activity-log:
+    enabled: true
+    success-content: activity
+    error-content: payload
 paths:
   /:
     parameters:
       - name: X-Mock
         description: >-
           Header requerido cuando se realiza invocación a Mocks, si se desea
-          enviar este header es necesario que el valor enviado corresponda a
-          la respuesta que espera recibir.
+          enviar este header es necesario que el valor enviado corresponda a la
+          respuesta que espera recibir.
         schema:
           type: string
         in: header
@@ -76,12 +74,46 @@ paths:
             application/json:
               schema:
                 type: string
-        default:
-          description: Respuesta fallida
+    put:
+      responses:
+        '200':
+          description: success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorRs'
+                type: string
+    post:
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: string
+    delete:
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: string
+    head:
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: string
+    patch:
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: string
 components:
   schemas:
     _verificationError:
@@ -210,11 +242,11 @@ components:
           type: integer
         size:
           description: Tamaño total de la página de la consulta
-          type: integer  
+          type: integer
   securitySchemes:
     clientID:
       type: apiKey
       in: header
       name: X-IBM-Client-Id
 security:
-  - clientID: []
+  - {}
