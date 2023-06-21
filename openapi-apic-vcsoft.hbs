@@ -2,21 +2,31 @@ openapi: 3.0.3
 
 info:
   x-ibm-name: {{name}}
-  version: {{version}}
+  version: {{#if version}}{{version}} {{else}}0.0.1{{/if}}
   title: {{title}}
-  x-ibm-name: taller0621-openapi3-newopenapi
-  description: taller0621usamos openapi3  y opción new openapi
-  
+  description: >-
+    # {{title}}
+    API: {{name}}
+    Contexto: 
+    Objectivo:
+
 servers:
-  - url: /taller0621-openapi3-newopenapi
+  - url: {{basepath}}
 x-ibm-configuration:
   properties:
     target-url:
       value: http://example.com/operation-name
-      description: The URL of the target service
+      description: URL del destino del servicio (backend)
       encoded: false
   cors:
     enabled: true
+  catalogs:
+    apic-dev:
+      properties:
+        runtime-url: $(TARGET_URL)
+    sb:
+      properties:
+        runtime-url: 'http://localhost:4001'
   gateway: datapower-api-gateway
   type: rest
   phase: realized
@@ -24,11 +34,15 @@ x-ibm-configuration:
   testable: true
   assembly:
     execute:
+      - gatewayscript:
+          version: 2.0.0
+          title: isMock
+          source: "/**\r\n*  _______                  _                 _    \r\n* |__   __|                | |               | |   \r\n*    | |_ __ __ _ _ __  ___| |__   __ _ _ __ | | __\r\n*    | | '__/ _` | '_ \\/ __| '_ \\ / _` | '_ \\| |/ /\r\n*    | | | | (_| | | | \\__ \\ |_) | (_| | | | |   < \r\n*    |_|_|  \\__,_|_| |_|___/_.__/ \\__,_|_| |_|_|\\_\\ 2022\r\n* \r\n************************************************************\r\n* Descripcion  : GatewayScript el cual definira si la solicitud\r\n*                se enviara a ambiente mock\r\n* Autores      : extjbernal@transbank.cl\r\n************************************************************\r\n*\r\n* @version: 2022/05/09\r\n* @desc:  version inicial\r\n*/\r\n\r\nconsole.info(\"Inicio de isMock\");\r\n/*\r\n* Lectura de variables necesarias\r\n*/\r\ncontext.set('ctx.mock',0);\r\nlet isMock = context.request.header.get('X-Mock');\r\nconsole.info(`Valor de mock enviado %s`,isMock);\r\n\r\n/*\r\n* mapeo variable para ir a MOCK\r\n*/\r\nif(isMock || isMock != undefined ){\r\n    context.set('ctx.mock',1);\r\n}"
       - invoke:
           title: invoke
           version: 2.0.0
           verb: keep
-          target-url: $(target-url)
+          target-url: {{targeturl}}
           follow-redirects: false
           timeout: 60
           parameter-control:
@@ -40,6 +54,15 @@ x-ibm-configuration:
           inject-proxy-headers: true
 paths:
   /:
+    parameters:
+      - name: X-Mock
+        description: >-
+          Header requerido cuando se realiza invocación a Mocks, si se desea
+          enviar este header es necesario que el valor enviado corresponda a
+          la respuesta que espera recibir.
+        schema:
+          type: string
+        in: header
     get:
       responses:
         '200':
@@ -89,6 +112,134 @@ paths:
               schema:
                 type: string
 components:
+  schemas:
+    _verificationError:
+      description: Error de verificaciones previas a ejecución de API
+      type: object
+      properties:
+        httpCode:
+          description: Status HTTP
+          type: string
+        httpMessage:
+          description: Mensaje de error
+          type: string
+        moreInformation:
+          description: Descripción del error presentado
+          type: string
+      example:
+        httpCode: '429'
+        httpMessage: Too Many Requests
+        moreInformation: Too Many Requests. Upgrade the plan
+    _error:
+      description: Definición de mensaje de error
+      type: object
+      properties:
+        id:
+          description: Identificador único para ésta ocurrencia particular del problema.
+          type: string
+        status:
+          description: >-
+            El código de estado HTTP aplicable a este problema, expresado como
+            un valor string.
+          type: string
+        code:
+          description: >-
+            Código de error específico de la aplicación, expresado como un valor
+            de string.
+          type: string
+        title:
+          description: Un resumen breve y legible del problema.
+          type: string
+        detail:
+          description: >-
+            Una explicación legible y específica para ésta ocurrencia del
+            problema.
+          type: string
+    _links:
+      description: Un objeto de recurso **PUEDE** contener referencias a otros recursos.
+      type: object
+      properties:
+        self:
+          format: uri
+          description: Miembro propio, cuyo valor es una URL para los datos de la relación
+          type: string
+        related:
+          format: uri
+          type: string
+    ErrorRs:
+      description: Representación del error presentado
+      required:
+        - errors
+        - meta
+      type: object
+      properties:
+        errors:
+          description: Errores presentados al momento de realizar la solicitud.
+          type: array
+          items:
+            $ref: '#/components/schemas/_error'
+        meta:
+          $ref: '#/components/schemas/_meta'
+      example:
+        meta:
+          _msgId: e83f2936-3a8c-4d95-9d61-38b24f0701f4
+          _version: 0.0.4
+          _rqDateTime: 2018-02-10T09:30Z
+          _clientId: 038901-1
+          _transactionId: ba440c87-80cf-4d74-8bc1-0da3f6e93199
+        errors:
+          - status: '422'
+            title: currency invalido
+            detail: El valor de currency 'COP' no esta entre los valores permitidos
+            source:
+              pointer: data.attributes.currency
+          - status: '422'
+            title: fromDate invalido
+            detail: El campo fromDate debe cumplir con el formato especificado
+            source:
+              pointer: data.attributes.fromDate
+    _meta:
+      required:
+        - _msgId
+      type: object
+      properties:
+        _msgId:
+          description: Identificado único del mensaje.
+          type: string
+          example: c4e6bd04-5149-11e7-b114-b2f933d5fe66
+        _version:
+          description: Vesión de la API.  Longitud máxima **5** caracteres.
+          type: string
+          example: '1.0'
+        _rqDateTime:
+          format: date-time
+          description: Fecha de la solicitud en formato ISO 8601 'yyyy-MM-ddThh:mm:ss'.
+          type: string
+        _clientId:
+          description: Identificador de la organización que realiza la invocación.
+          type: string
+          example: 899812212-1
+        _transactionId:
+          description: >-
+            Identificador de seguimiento de la invocación realizada. Longitud
+            máxima de **36** caracteres alfanuméricos.
+          type: string
+        _rsLength:
+          description: Total de registros entregados en la respuesta de la solicitud.
+          type: number
+        _totalTransactions:
+          description: Total de transacciones encontradas con los filtros ingresados.
+          type: number
+    _pagination:
+      description: Entidad con la cual se representa la paginación solicitada
+      type: object
+      properties:
+        page:
+          description: Número de la página de la consulta
+          type: integer
+        size:
+          description: Tamaño total de la página de la consulta
+          type: integer  
   securitySchemes:
     clientID:
       type: apiKey

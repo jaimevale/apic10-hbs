@@ -13,6 +13,14 @@ apic create:[api | product] --template template_file --title [api_title | produc
 
 apic create:api      --template template_api.hbs       --title api_title 
 apic create:product  --template template_producto.hbs  --title product_title
+
+
+
+apic create:api      --template openapi-apic-vcsoft.hbs    
+   --title api_title 
+   --name api_name
+   --basepath /base/path
+
 ```
 
 Donde: 
